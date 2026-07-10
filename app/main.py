@@ -1,5 +1,9 @@
 """
-Entrypoint: launches the Streamlit data science dashboard.
+Entrypoint: re-launches this project as a Streamlit app via subprocess.
+
+Tower runs this file as a plain Python script. Streamlit must be started
+through its own CLI (`streamlit run`), so this script does exactly that —
+forwarding Tower parameters as environment variables to the child process.
 
 Tower parameters:
   NUM_ROWS    — number of synthetic data rows (default: 1000)
@@ -8,7 +12,9 @@ Tower parameters:
 
 import logging
 import os
+import subprocess
 import sys
+from pathlib import Path
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,19 +41,25 @@ def main() -> None:
     num_rows = _get_int_param("NUM_ROWS", 1000)
     random_seed = _get_int_param("RANDOM_SEED", 42)
 
-    logger.info("Launching dashboard — NUM_ROWS=%d, RANDOM_SEED=%d", num_rows, random_seed)
+    app_script = Path(__file__).parent / "streamlit_app.py"
 
-    # Import here so Streamlit's module watcher sees them after env is set
-    import streamlit as st
-    from pipeline import run_pipeline
-    from dashboard import render_dashboard
+    env = os.environ.copy()
+    env["NUM_ROWS"] = str(num_rows)
+    env["RANDOM_SEED"] = str(random_seed)
 
-    @st.cache_data(show_spinner="Generating synthetic data and computing statistics…")
-    def _cached_pipeline(n: int, seed: int) -> dict:
-        return run_pipeline(num_rows=n, random_seed=seed)
+    cmd = [
+        sys.executable, "-m", "streamlit", "run",
+        str(app_script),
+        "--server.headless=true",
+        "--server.enableCORS=false",
+        "--server.enableXsrfProtection=false",
+    ]
 
-    data = _cached_pipeline(num_rows, random_seed)
-    render_dashboard(data)
+    logger.info("Launching Streamlit — NUM_ROWS=%d, RANDOM_SEED=%d", num_rows, random_seed)
+    logger.info("Command: %s", " ".join(cmd))
+
+    result = subprocess.run(cmd, env=env)
+    sys.exit(result.returncode)
 
 
 if __name__ == "__main__":

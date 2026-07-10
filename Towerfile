@@ -4,6 +4,7 @@ script = "./app/main.py"
 
 source = [
     "./app/main.py",
+    "./app/streamlit_app.py",
     "./app/pipeline.py",
     "./app/dashboard.py",
     "./app/tasks/generate_data.py",
