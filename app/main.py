@@ -41,7 +41,9 @@ def main() -> None:
     num_rows = _get_int_param("NUM_ROWS", 1000)
     random_seed = _get_int_param("RANDOM_SEED", 42)
 
-    app_script = Path(__file__).parent / "streamlit_app.py"
+    # Resolve streamlit_app.py relative to this file — guaranteed correct
+    # regardless of what the Tower working directory is set to.
+    app_script = Path(__file__).resolve().parent / "streamlit_app.py"
 
     env = os.environ.copy()
     env["NUM_ROWS"] = str(num_rows)
@@ -59,8 +61,9 @@ def main() -> None:
 
     logger.info("Launching Streamlit — NUM_ROWS=%d, RANDOM_SEED=%d", num_rows, random_seed)
     logger.info("Command: %s", " ".join(cmd))
+    logger.info("Streamlit app script: %s", app_script)
 
-    result = subprocess.run(cmd, env=env)
+    result = subprocess.run(cmd, env=env, cwd=str(app_script.parent))
     sys.exit(result.returncode)
 
 
