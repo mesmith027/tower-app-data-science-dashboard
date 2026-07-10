@@ -1,0 +1,23 @@
+[app]
+name = "data-science-dashboard"
+script = "./app/main.py"
+
+source = [
+    "./app/main.py",
+    "./app/pipeline.py",
+    "./app/dashboard.py",
+    "./app/tasks/generate_data.py",
+    "./app/tasks/statistics.py",
+    "./app/tasks/visualizations.py",
+    "./pyproject.toml"
+]
+
+[[parameters]]
+name = "NUM_ROWS"
+description = "Number of synthetic data rows to generate"
+default = "1000"
+
+[[parameters]]
+name = "RANDOM_SEED"
+description = "Random seed for reproducible data generation"
+default = "42"
