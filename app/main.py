@@ -50,6 +50,8 @@ def main() -> None:
     cmd = [
         sys.executable, "-m", "streamlit", "run",
         str(app_script),
+        "--server.address=0.0.0.0",
+        "--server.port=8501",
         "--server.headless=true",
         "--server.enableCORS=false",
         "--server.enableXsrfProtection=false",
