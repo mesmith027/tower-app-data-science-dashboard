@@ -42,16 +42,10 @@ def main() -> None:
     num_rows = _get_int_param("NUM_ROWS", 1000)
     random_seed = _get_int_param("RANDOM_SEED", 42)
     
-    # 1. Try to get the port from the Tower SDK
-    assigned_port = tower.info.port()
-    
-    # 2. Fallback chain: Tower SDK -> OS Environment Variable -> Local Default (8501)
-    if assigned_port:
-        server_port = str(assigned_port)
-    else:
-        server_port = os.environ.get("PORT", "8501")
+    # Read the PORT environment variable assigned by Tower, default to "8501" locally
+    server_port = os.environ.get("PORT", "8501")
 
-    # Dynamic path resolution for streamlit_app.py
+    # Clean, dynamic path resolution we set up earlier
     app_script = Path("streamlit_app.py").absolute()
     if not app_script.exists():
         app_script = Path(__file__).parent / "streamlit_app.py"
@@ -64,7 +58,7 @@ def main() -> None:
         sys.executable, "-m", "streamlit", "run",
         str(app_script),
         "--server.address=0.0.0.0",
-        f"--server.port={server_port}",
+        f"--server.port={server_port}",  # Dynamic port injected here
         "--server.headless=true",
         "--server.enableCORS=false",
         "--server.enableXsrfProtection=false",
@@ -76,7 +70,6 @@ def main() -> None:
 
     result = subprocess.run(cmd, env=env, cwd=str(app_script.parent))
     sys.exit(result.returncode)
-
 
 if __name__ == "__main__":
     main()
