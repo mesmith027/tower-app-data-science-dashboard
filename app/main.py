@@ -15,6 +15,8 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+# Make sure to import tower at the top of your file
+import tower 
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,14 +38,23 @@ def _get_int_param(name: str, default: int) -> int:
         logger.warning("Invalid value for %s: %r — using default %d", name, raw, default)
         return default
 
-
 def main() -> None:
     num_rows = _get_int_param("NUM_ROWS", 1000)
     random_seed = _get_int_param("RANDOM_SEED", 42)
+    
+    # 1. Try to get the port from the Tower SDK
+    assigned_port = tower.info.port()
+    
+    # 2. Fallback chain: Tower SDK -> OS Environment Variable -> Local Default (8501)
+    if assigned_port:
+        server_port = str(assigned_port)
+    else:
+        server_port = os.environ.get("PORT", "8501")
 
-    # Resolve streamlit_app.py relative to this file — guaranteed correct
-    # regardless of what the Tower working directory is set to.
-    app_script = Path(__file__).resolve().parent / "streamlit_app.py"
+    # Dynamic path resolution for streamlit_app.py
+    app_script = Path("streamlit_app.py").absolute()
+    if not app_script.exists():
+        app_script = Path(__file__).parent / "streamlit_app.py"
 
     env = os.environ.copy()
     env["NUM_ROWS"] = str(num_rows)
@@ -53,13 +64,13 @@ def main() -> None:
         sys.executable, "-m", "streamlit", "run",
         str(app_script),
         "--server.address=0.0.0.0",
-        "--server.port=8501",
+        f"--server.port={server_port}",
         "--server.headless=true",
         "--server.enableCORS=false",
         "--server.enableXsrfProtection=false",
     ]
 
-    logger.info("Launching Streamlit — NUM_ROWS=%d, RANDOM_SEED=%d", num_rows, random_seed)
+    logger.info("Launching Streamlit — NUM_ROWS=%d, RANDOM_SEED=%d, PORT=%s", num_rows, random_seed, server_port)
     logger.info("Command: %s", " ".join(cmd))
     logger.info("Streamlit app script: %s", app_script)
 
