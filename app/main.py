@@ -15,8 +15,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-# Make sure to import tower at the top of your file
-import tower 
 
 logging.basicConfig(
     level=logging.INFO,
